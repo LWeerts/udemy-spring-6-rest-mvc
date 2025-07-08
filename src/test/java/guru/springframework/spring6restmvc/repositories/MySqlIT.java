@@ -24,7 +24,7 @@ public class MySqlIT {
 
     @Container
     @ServiceConnection
-    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:9");
+    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8");
 
     @Autowired
     BeerRepository beerRepository;
