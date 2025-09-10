@@ -1,5 +1,7 @@
 package guru.springframework.spring6restmvc.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,6 +17,9 @@ public class BeerOrderDTO {
     private Long version;
     private Timestamp createdDate;
     private Timestamp lastModifiedDate;
+
+    @NotBlank
+    @Size(max = 255)
     private String customerRef;
     private CustomerDTO customer;
 

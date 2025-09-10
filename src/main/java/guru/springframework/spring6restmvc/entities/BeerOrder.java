@@ -17,6 +17,8 @@
 package guru.springframework.spring6restmvc.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -71,6 +73,8 @@ public class BeerOrder {
         return this.id == null;
     }
 
+    @NotBlank
+    @Size(max = 255)
     private String customerRef;
 
     @ManyToOne

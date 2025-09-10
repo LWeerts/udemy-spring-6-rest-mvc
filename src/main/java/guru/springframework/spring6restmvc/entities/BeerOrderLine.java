@@ -17,6 +17,7 @@
 package guru.springframework.spring6restmvc.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
@@ -56,12 +57,15 @@ public class BeerOrderLine {
         return this.id == null;
     }
 
+    @NotEmpty
     @ManyToOne
     private BeerOrder beerOrder;
 
+    @NotEmpty
     @ManyToOne
     private Beer beer;
 
+    @NotEmpty
     private Integer orderQuantity = 0;
     private Integer quantityAllocated = 0;
 }
