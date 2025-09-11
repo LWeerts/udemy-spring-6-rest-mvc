@@ -1,8 +1,6 @@
 package guru.springframework.spring6restmvc.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.*;
@@ -31,11 +29,9 @@ public class BeerOrderShipment {
     @Version
     private Long version;
 
-    @NotEmpty
     @OneToOne
     private BeerOrder beerOrder;
 
-    @NotBlank
     @Size(max = 50)
     private String trackingNumber;
 

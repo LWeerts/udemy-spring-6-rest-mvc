@@ -1,9 +1,12 @@
 package guru.springframework.spring6restmvc.bootstrap;
 
 import guru.springframework.spring6restmvc.entities.Beer;
+import guru.springframework.spring6restmvc.entities.BeerOrder;
+import guru.springframework.spring6restmvc.entities.BeerOrderLine;
 import guru.springframework.spring6restmvc.entities.Customer;
 import guru.springframework.spring6restmvc.model.BeerCSVRecord;
 import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvc.repositories.BeerOrderRepository;
 import guru.springframework.spring6restmvc.repositories.BeerRepository;
 import guru.springframework.spring6restmvc.repositories.CustomerRepository;
 import guru.springframework.spring6restmvc.services.BeerCsvService;
@@ -20,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -30,6 +34,7 @@ public class BootstrapData implements CommandLineRunner {
     private final BeerRepository beerRepository;
     private final CustomerRepository customerRepository;
     private final BeerCsvService beerCsvService;
+    private final BeerOrderRepository beerOrderRepository;
 
     @Transactional
     @Override
@@ -37,6 +42,7 @@ public class BootstrapData implements CommandLineRunner {
         loadBeerData();
         loadCsvData();
         loadCustomerData();
+        loadOrderData();
     }
 
     private void loadCsvData() throws FileNotFoundException {
@@ -136,6 +142,34 @@ public class BootstrapData implements CommandLineRunner {
             customerRepository.saveAll(Arrays.asList(customer1, customer2, customer3));
         }
 
+    }
+
+    private void loadOrderData() {
+
+        if (beerOrderRepository.count() == 0) {
+            var allCustomers = customerRepository.findAll();
+            var allBeers = beerRepository.findAll();
+
+            for (int index = 0; index < allCustomers.size() * 2; index++) {
+                Customer customer = allCustomers.get(index % allCustomers.size());
+
+                BeerOrderLine orderLine1 = BeerOrderLine.builder()
+                        .beer(allBeers.get(index % allBeers.size()))
+                        .orderQuantity(6)
+                        .build();
+                BeerOrderLine orderLine2 = BeerOrderLine.builder()
+                        .beer(allBeers.get((index + 1) % allBeers.size()))
+                        .orderQuantity(2)
+                        .build();
+                BeerOrder beerOrder = BeerOrder.builder()
+                        .customer(customer)
+                        .beerOrderLines(Set.of(orderLine1, orderLine2))
+                        .customerRef(customer.getName())
+                        .build();
+
+                beerOrderRepository.save(beerOrder);
+            }
+        }
     }
 
 
