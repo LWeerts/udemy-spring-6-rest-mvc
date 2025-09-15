@@ -1,27 +1,43 @@
 package guru.springframework.spring6restmvc.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.entities.BeerOrder;
+import guru.springframework.spring6restmvc.model.BeerOrderCreateDTO;
+import guru.springframework.spring6restmvc.model.BeerOrderLineCreateDTO;
 import guru.springframework.spring6restmvc.repositories.BeerOrderRepository;
+import guru.springframework.spring6restmvc.repositories.BeerRepository;
+import guru.springframework.spring6restmvc.repositories.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Set;
 
 import static guru.springframework.spring6restmvc.controller.BeerControllerTest.jwtRequestPostProcessor;
 import static org.hamcrest.core.Is.is;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 class BeerOrderControllerIT {
 
     @Autowired
+    BeerRepository beerRepository;
+
+    @Autowired
+    CustomerRepository customerRepository;
+
+    @Autowired
     BeerOrderRepository beerOrderRepository;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Autowired
     WebApplicationContext wac;
@@ -51,6 +67,30 @@ class BeerOrderControllerIT {
                         .with(jwtRequestPostProcessor))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(beerOrder.getId().toString())));
+    }
+
+    @Test
+    void testCreateBeerOrder() throws Exception {
+        var beer = beerRepository.findAll().getFirst();
+        var customer = customerRepository.findAll().getFirst();
+
+        var orderLine = BeerOrderLineCreateDTO.builder()
+                .beerId(beer.getId())
+                .orderQuantity(6).build();
+
+        var beerOrder = BeerOrderCreateDTO.builder()
+                .customerId(customer.getId())
+                .customerRef(customer.getName())
+                .beerOrderLines(Set.of(orderLine))
+                .build();
+
+        mockMvc.perform(post(BeerOrderController.BEER_ORDER_PATH)
+                        .with(jwtRequestPostProcessor)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(beerOrder)))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"));
 
     }
 }
