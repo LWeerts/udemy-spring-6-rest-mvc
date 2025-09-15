@@ -1,13 +1,15 @@
 package guru.springframework.spring6restmvc.controller;
 
+import guru.springframework.spring6restmvc.model.BeerOrderCreateDTO;
 import guru.springframework.spring6restmvc.model.BeerOrderDTO;
 import guru.springframework.spring6restmvc.services.BeerOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -33,5 +35,13 @@ public class BeerOrderController {
         return beerOrderService.getBeerOrderById(beerOrderId).orElseThrow(NotFoundException::new);
     }
 
+    @PostMapping(value = BEER_ORDER_PATH)
+    public ResponseEntity<Void> createBeerOrder(@Validated @RequestBody BeerOrderCreateDTO beerOrder) {
+        BeerOrderDTO savedBeerOrder = beerOrderService.saveNewBeerOrder(beerOrder);
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.LOCATION, BEER_ORDER_PATH + "/" + savedBeerOrder.getId().toString());
+
+        return new ResponseEntity(headers, HttpStatus.CREATED);
+    }
 }
