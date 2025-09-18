@@ -100,6 +100,16 @@ public class BeerOrderServiceJPA implements BeerOrderService {
         return atomicReference.get();
     }
 
+    public void deleteBeerOrderById(UUID id) {
+        if (beerOrderRepository.findById(id).isPresent()) {
+            beerOrderRepository.deleteById(id);
+        } else {
+            throw new NotFoundException();
+        }
+    }
+
+
+
     private void updateBeerOrderOrderLines(BeerOrderUpdateDTO beerOrderUpdateDTO, BeerOrder beerOrder) {
         for (BeerOrderLineUpdateDTO lineUpdateDTO : beerOrderUpdateDTO.getBeerOrderLines()) {
             if (lineUpdateDTO.getId() != null) {

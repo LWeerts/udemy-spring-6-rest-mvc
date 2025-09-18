@@ -143,6 +143,7 @@ class BeerOrderControllerIT {
                 .andExpect(jsonPath("$.customerRef", is(updatedCustomerRef)));
     }
 
+    @Transactional
     @Rollback
     @Test
     @Order(5)
