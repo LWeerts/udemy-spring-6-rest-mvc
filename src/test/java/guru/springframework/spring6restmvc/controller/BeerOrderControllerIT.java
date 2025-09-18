@@ -7,13 +7,13 @@ import guru.springframework.spring6restmvc.model.*;
 import guru.springframework.spring6restmvc.repositories.BeerOrderRepository;
 import guru.springframework.spring6restmvc.repositories.BeerRepository;
 import guru.springframework.spring6restmvc.repositories.CustomerRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashSet;
@@ -25,6 +25,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 class BeerOrderControllerIT {
 
@@ -53,6 +54,7 @@ class BeerOrderControllerIT {
     }
 
     @Test
+    @Order(1)  // otherwise testCreateBeerOrder would increase size to 7
     void testListBeerOrders() throws Exception {
         mockMvc.perform(get(BeerOrderController.BEER_ORDER_PATH)
                         .with(jwtRequestPostProcessor))
@@ -61,6 +63,7 @@ class BeerOrderControllerIT {
     }
 
     @Test
+    @Order(2)
     void testGetBeerOrderById() throws Exception {
         BeerOrder beerOrder = beerOrderRepository.findAll().getFirst();
 
@@ -71,6 +74,7 @@ class BeerOrderControllerIT {
     }
 
     @Test
+    @Order(3)
     void testCreateBeerOrder() throws Exception {
         var beer = beerRepository.findAll().getFirst();
         var customer = customerRepository.findAll().getFirst();
@@ -94,7 +98,9 @@ class BeerOrderControllerIT {
                 .andExpect(header().exists("Location"));
     }
 
+    @Transactional
     @Test
+    @Order(4)
     void testUpdateBeerOrder() throws Exception {
         var beerOrder = beerOrderRepository.findAll().getFirst();
 

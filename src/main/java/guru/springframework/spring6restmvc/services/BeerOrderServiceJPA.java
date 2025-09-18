@@ -3,10 +3,9 @@ package guru.springframework.spring6restmvc.services;
 import guru.springframework.spring6restmvc.controller.NotFoundException;
 import guru.springframework.spring6restmvc.entities.BeerOrder;
 import guru.springframework.spring6restmvc.entities.BeerOrderLine;
+import guru.springframework.spring6restmvc.entities.BeerOrderShipment;
 import guru.springframework.spring6restmvc.mappers.BeerOrderMapper;
-import guru.springframework.spring6restmvc.model.BeerOrderCreateDTO;
-import guru.springframework.spring6restmvc.model.BeerOrderDTO;
-import guru.springframework.spring6restmvc.model.BeerOrderLineCreateDTO;
+import guru.springframework.spring6restmvc.model.*;
 import guru.springframework.spring6restmvc.repositories.BeerOrderRepository;
 import guru.springframework.spring6restmvc.repositories.BeerRepository;
 import guru.springframework.spring6restmvc.repositories.CustomerRepository;
@@ -20,6 +19,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +65,61 @@ public class BeerOrderServiceJPA implements BeerOrderService {
                 .build();
 
         return beerOrderMapper.beerOrderToBeerOrderDTO(beerOrderRepository.save(beerOrder));
+    }
+
+    @Override
+    public Optional<BeerOrderDTO> updateBeerOrder(UUID id, BeerOrderUpdateDTO beerOrderUpdateDTO) {
+        AtomicReference<Optional<BeerOrderDTO>> atomicReference = new AtomicReference<>();
+
+        beerOrderRepository.findById(id).ifPresentOrElse((beerOrder) -> {
+            beerOrder.setCustomer(customerRepository.findById(beerOrderUpdateDTO.getCustomerId())
+                    .orElseThrow(NotFoundException::new));
+            beerOrder.setCustomerRef(beerOrderUpdateDTO.getCustomerRef());
+
+            if (beerOrderUpdateDTO.getBeerOrderShipment() != null
+                    && beerOrderUpdateDTO.getBeerOrderShipment().getTrackingNumber() != null) {
+                if (beerOrder.getBeerOrderShipment() == null) {
+                    beerOrder.setBeerOrderShipment(BeerOrderShipment.builder()
+                            .trackingNumber(beerOrderUpdateDTO.getBeerOrderShipment().getTrackingNumber())
+                            .build());
+                } else {
+                    beerOrder.getBeerOrderShipment().setTrackingNumber(
+                            beerOrderUpdateDTO.getBeerOrderShipment().getTrackingNumber()
+                    );
+                }
+            }
+
+            updateBeerOrderOrderLines(beerOrderUpdateDTO, beerOrder);
+
+            var savedBeerOrder = beerOrderRepository.save(beerOrder);
+            atomicReference.set(Optional.of(beerOrderMapper.beerOrderToBeerOrderDTO(savedBeerOrder)));
+        }, () -> {
+            atomicReference.set(Optional.empty());
+        });
+
+        return atomicReference.get();
+    }
+
+    private void updateBeerOrderOrderLines(BeerOrderUpdateDTO beerOrderUpdateDTO, BeerOrder beerOrder) {
+        for (BeerOrderLineUpdateDTO lineUpdateDTO : beerOrderUpdateDTO.getBeerOrderLines()) {
+            if (lineUpdateDTO.getId() != null) {
+                var foundLine = beerOrder.getBeerOrderLines().stream().filter(
+                        beerOrderLine1 -> beerOrderLine1.getId().equals(lineUpdateDTO.getId())
+                ).findFirst().orElseThrow(NotFoundException::new);
+
+                foundLine.setBeer(beerRepository.findById(lineUpdateDTO.getBeerId()).orElseThrow(NotFoundException::new));
+                foundLine.setOrderQuantity(lineUpdateDTO.getOrderQuantity());
+                foundLine.setQuantityAllocated(lineUpdateDTO.getQuantityAllocated());
+
+            } else {
+                beerOrder.getBeerOrderLines().add(BeerOrderLine.builder()
+                        .beer(beerRepository.findById(lineUpdateDTO.getBeerId()).orElseThrow(NotFoundException::new))
+                        .orderQuantity(lineUpdateDTO.getOrderQuantity())
+                        .quantityAllocated(lineUpdateDTO.getQuantityAllocated())
+                        .build());
+            }
+
+        }
     }
 
 

@@ -2,6 +2,7 @@ package guru.springframework.spring6restmvc.controller;
 
 import guru.springframework.spring6restmvc.model.BeerOrderCreateDTO;
 import guru.springframework.spring6restmvc.model.BeerOrderDTO;
+import guru.springframework.spring6restmvc.model.BeerOrderUpdateDTO;
 import guru.springframework.spring6restmvc.services.BeerOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,5 +44,16 @@ public class BeerOrderController {
         headers.add(HttpHeaders.LOCATION, BEER_ORDER_PATH + "/" + savedBeerOrder.getId().toString());
 
         return new ResponseEntity(headers, HttpStatus.CREATED);
+    }
+
+    @PutMapping(value = BEER_ORDER_PATH_ID)
+    public ResponseEntity<Void> updateBeerOrder(
+            @PathVariable("beerOrderId") UUID beerOrderId,
+            @Validated @RequestBody BeerOrderUpdateDTO beerOrderUpdateDTO) {
+
+        if (beerOrderService.updateBeerOrder(beerOrderId, beerOrderUpdateDTO).isEmpty()) {
+            throw new NotFoundException();
+        }
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 }
