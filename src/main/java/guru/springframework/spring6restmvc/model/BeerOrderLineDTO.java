@@ -24,5 +24,7 @@ public class BeerOrderLineDTO {
     private Integer orderQuantity;
     private Integer quantityAllocated;
 
+    private BeerOrderLineStatus status;
+
 
 }

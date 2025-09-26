@@ -16,6 +16,7 @@
  */
 package guru.springframework.spring6restmvc.entities;
 
+import guru.springframework.spring6restmvc.model.BeerOrderLineStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -67,4 +68,8 @@ public class BeerOrderLine {
 
     private Integer orderQuantity = 0;
     private Integer quantityAllocated = 0;
+
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.SMALLINT)
+    private BeerOrderLineStatus status = BeerOrderLineStatus.NEW;
 }
